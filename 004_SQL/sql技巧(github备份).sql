@@ -1,0 +1,581 @@
+-- Databricks notebook source
+-- MAGIC %md
+-- MAGIC 
+-- MAGIC ### <2022.7.28 update.>
+-- MAGIC 
+-- MAGIC 在bash中启动spark-sql环境
+-- MAGIC ```
+-- MAGIC spark-sql
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 显示所有数据库的名字
+-- MAGIC ```
+-- MAGIC show databases;
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 选中目标数据库
+-- MAGIC ```
+-- MAGIC use <database.name>;
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 显示目标数据库中所有的表
+-- MAGIC ```
+-- MAGIC show tables;
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 显示表内所有字段的类型和数值状态
+-- MAGIC ```
+-- MAGIC desc <table.name>;
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 退出spark-sql shell环境
+-- MAGIC ```
+-- MAGIC :quit
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 
+-- MAGIC <sqlite基础命令>
+-- MAGIC ```.quit 或 .exit #退出环境
+-- MAGIC .databases #查看当前数据库
+-- MAGIC .schema <table.name> #查看表结构
+-- MAGIC .version #查看版本
+-- MAGIC .open <database.name>.db #创建数据库(或打开已创建的数据库)
+-- MAGIC .tables #查看当前数据库所有表
+-- MAGIC .help #查看命令帮助
+-- MAGIC .show #查看sqlite命令提示符的默认设置
+-- MAGIC .mode <xx> #显示表的三种结构list,csv,column
+-- MAGIC .header on #显示表是否带字段名
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 
+-- MAGIC <基础表操作：增删改查>
+-- MAGIC ```
+-- MAGIC create table <table.name> 
+-- MAGIC (id int primary key,name char,age int,sex char); 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 创建新表(创建新表要先创建/打开数据库，否则表结构不会保存)
+-- MAGIC 
+-- MAGIC ```
+-- MAGIC insert into <new.table.name> 
+-- MAGIC select * from <old.table.name>; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 将原表中所有的数据复制到一张新表(内容相同，列名不相同); sqlite不支持更换列名，用此方法可以实现更换列名；
+-- MAGIC ```
+-- MAGIC create table <new.table.name> 
+-- MAGIC as select * from <existing.table.name>; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 将已存在的表复制另存为一张新表
+-- MAGIC ```
+-- MAGIC insert into <table.name> values (0,'zhang0',20,'m; #基于表的schema插入值
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 查找表所有内容
+-- MAGIC ```
+-- MAGIC select * from <table.name>; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 查找id和name字段内容
+-- MAGIC ```
+-- MAGIC select id,name from <table.name>; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC where条件查找age>25的信息
+-- MAGIC ```
+-- MAGIC select * from <table.name> 
+-- MAGIC where age>25; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC where条件查找age>25和sex=m的信息
+-- MAGIC ```
+-- MAGIC select * from <table.name> 
+-- MAGIC where age>25 and sex='m'; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 基于特定条件修改值
+-- MAGIC ```
+-- MAGIC update <table.name> set name='<new.value>' 
+-- MAGIC where name='<old.value>'; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 基于特定条件删除特定行
+-- MAGIC ```
+-- MAGIC delete from <table.name> 
+-- MAGIC where name='<old.value>'; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 插入一列地址字段，(名称为address，类型为char)
+-- MAGIC ```
+-- MAGIC alter table <table.name> add address char; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 
+-- MAGIC 把全部地址的数据内容更新为beijing
+-- MAGIC ```
+-- MAGIC update <table.name> set address='beijing';
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 
+-- MAGIC 删除某一张表
+-- MAGIC ```
+-- MAGIC drop table <table.name>; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 
+-- MAGIC sqlite不支持删除列，此命令用于选取旧表中几列复制并创建一个新表
+-- MAGIC ```
+-- MAGIC create table <new.table.name> 
+-- MAGIC as select id,name,sex from <old.table.name>; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 用于将旧表重命名
+-- MAGIC ```
+-- MAGIC alter table <old.table.name> to <new.table.name>; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 
+-- MAGIC 统计表有多少行数据
+-- MAGIC ```
+-- MAGIC select count(*) from <table.name>; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC SQLite最常用的基础命令
+-- MAGIC ```
+-- MAGIC create, select, insert, update, delete, drop 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 返回某列的非重复值(去重)，可多列
+-- MAGIC ```
+-- MAGIC select distinct <col.name> from <table.name>; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 
+-- MAGIC 返回前x行的数据
+-- MAGIC ```
+-- MAGIC select *from <table.name> limit <x>; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 
+-- MAGIC 返回前x行的数据,从第y+1行开始返回
+-- MAGIC 注释方式：1. #... 2./*...*/
+-- MAGIC ```
+-- MAGIC select *from <table.name> limit <x> offset <y>; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 按某一列升序排序，默认升序排列 asc(可多列)
+-- MAGIC ```
+-- MAGIC select * from <table.name> 
+-- MAGIC order by <col.name>; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 按某一列降序排序
+-- MAGIC ```
+-- MAGIC select * from <table.name> 
+-- MAGIC order by <col.name> desc; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 搜索列值为x的全部信息(where子句操作符命令：=等于 | <>,!= 不等于 | <小于 | <=小于等于 | !<不小于 | >大于 |>=大于等于 | !> 不大于 | Between x and y 在指定的x和y之间 | is null 为空)
+-- MAGIC ```
+-- MAGIC select * from <table.name> 
+-- MAGIC where <col.name>='x'; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 多重条件筛选：And比or的优先级更高；括号比And/or的优先级更高。结论—常用括号来区分优先级
+-- MAGIC ```
+-- MAGIC select <col.name> 
+-- MAGIC where <condition.a> or <condition.b>; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 通过IN括号内的有效值来进行条件筛选
+-- MAGIC ```
+-- MAGIC select <col.name> from <table.name> 
+-- MAGIC where <col.name> in ('value1','value2 
+-- MAGIC order by <col.name>; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 
+-- MAGIC 通过NOT排除某些条件进行筛选
+-- MAGIC ```
+-- MAGIC select <col.name> from <table.name> 
+-- MAGIC where not <col.name>='value' 
+-- MAGIC order by <col.name> 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC ---
+-- MAGIC <通配符 %></br>
+-- MAGIC 通配符LIKE+%,筛选以keywords开头的值(词语和数字均可)
+-- MAGIC ```
+-- MAGIC select <col.name> from <table.name> 
+-- MAGIC where <col.name> like 'keywords%'; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 通配符LIKE+%,筛选值内任何位置包含keywords的结果
+-- MAGIC ```
+-- MAGIC select <col.name> from <table.name> 
+-- MAGIC where <col.name> like '%keywords%'; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 通配符LIKE+%,筛选值以F开头,以y结尾
+-- MAGIC <通配符 _>
+-- MAGIC ```
+-- MAGIC select <col.name> from <table.name> 
+-- MAGIC where <col.name> like 'F%y'; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 通配符LIKE + 下划线_ (_与%用途一样，但一个下划线只能匹配一个字符，多个字符需要对应添加多个下划线)
+-- MAGIC ```
+-- MAGIC select <col.name> from <table.name> 
+-- MAGIC where name like 'xxx_'; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC ---
+-- MAGIC <拼接字段></br>
+-- MAGIC 
+-- MAGIC 通过连接符将两列的内容通过‘-’连接生成新的字段. ||为连接符，字段值外的连接符用''添加
+-- MAGIC ```
+-- MAGIC select <col.name1> || '-' || <col.name2> from <table.name>; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <度量值计算,计算结果定义别名-new.col.name>
+-- MAGIC 通过计算两列值相乘得到新列，基础度量操作+-*/
+-- MAGIC  ```
+-- MAGIC select <col.name1>,<col.name2>,<col.name1>*<col.name2> as <new.col.name> from <table.name>;
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <文本处理函数>
+-- MAGIC upper将col1的内容统一全部转化为大写字母。sql常用文本处理函数：upper()-字符串转化为大写，lower()-字符串转化为小写，soundex()-将任何文本串转化为.描述其语音表示的字母数字模式的算法，对字符串发音的相似性进行比较的算法
+-- MAGIC ```
+-- MAGIC select upper(<col.name1>) as <new.col.name> from <table.name>; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 
+-- MAGIC <日期和时间处理函数>
+-- MAGIC sqlite专有形式
+-- MAGIC ```
+-- MAGIC select order_num from orders 
+-- MAGIC where strftime('%Y',order_date) = 'xx'; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <汇总计算数据>
+-- MAGIC 计算某一字段均值。常用聚集函数：avg(),count(),max(),min(),sum()
+-- MAGIC ```
+-- MAGIC select avg(<col.name>) as <new.col.name> from <table.name>; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 
+-- MAGIC <聚集不同汇总值，同时显示>
+-- MAGIC 同时显示多个维度的计算结果值
+-- MAGIC ```
+-- MAGIC select count(*) as <new.col1>, max(<col.name2>) as <new.col2>, min(<col.name3>) as <new.col3> from <table.name>; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <分组数据|Group by>
+-- MAGIC 通过group by按照指定维度进行聚合和统计分组
+-- MAGIC ```
+-- MAGIC select <col.name>,count(*) as <new.col.name> 
+-- MAGIC from <table.name> group by <col.name>; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <过滤分组>
+-- MAGIC 通过group by按照指定维度进行聚合和统计分组,并进行统计过滤
+-- MAGIC ```
+-- MAGIC select <col.name>,count(*) as <new.col.name> 
+-- MAGIC from <table.name> group by <col.name> having count(*)>= xx; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <Select子句顺序>
+-- MAGIC ```
+-- MAGIC select - from - where - group by - having - order by
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <子查询 - 作为where条件></br>
+-- MAGIC 基于表1的查询结果，作为输入条件应用在表2的查询中，构成子查询(子查询可以是多重，不一定只有1个子查询)
+-- MAGIC ```
+-- MAGIC select <col.name> from <table.name> 
+-- MAGIC where <col.name1> in (select <col.name2> 
+-- MAGIC from <table.name1> where <col.name3>='xx 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 
+-- MAGIC <子查询2 - 作为select条件,示例></br>
+-- MAGIC 将子查询作为select的条件加入查询中
+-- MAGIC ```
+-- MAGIC select cust_name,cust_state,
+-- MAGIC 	(select count(*) from orders 
+-- MAGIC where orders.cust_id = customer.cust_id) as orders 
+-- MAGIC from customers 
+-- MAGIC order by cust_name; 
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <联结表 - join，多表拼接></br>
+-- MAGIC 为什么要设计多表? 为了更有效的存储，方便地处理；即更好的可伸缩性(scale well)-能够适应不断增加的数据量而不失败. col.name 1,2,3是来自不同表的join字段，不能来自于同一张表；where条件中可以不是primary key,但要注意字段中的重复情况，重复会进行排列组合，让数据加倍。没有where的条件时，返回的结果为笛卡尔积；
+-- MAGIC ```
+-- MAGIC select <col.name1>,<col.name2>,<col.name3> 
+-- MAGIC from <table.name1>,<table.name2> 
+-- MAGIC where <table.name1>.<col.name1> = <table.name2>.<col.name2>;
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 
+-- MAGIC <内联结 - inner join,也叫等值联结equijoin>,示例：
+-- MAGIC ```
+-- MAGIC select vend_name,prod_name,prod_price
+-- MAGIC from vendors
+-- MAGIC where join products on vendors.vend_id = products.vend_id;
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 
+-- MAGIC <联结多个表>,示例:
+-- MAGIC ```
+-- MAGIC select prod_name,vend_name,prod_price,quantity
+-- MAGIC from orderitems,products,vendors
+-- MAGIC where products.vend_id = vendors.vend_id
+-- MAGIC 	and orderitems.prod_id = products.prod_id
+-- MAGIC 	and order_num = 20007;
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 
+-- MAGIC <子查询优化 -> 联结多表>,示例:
+-- MAGIC ```
+-- MAGIC select cust_name,cust_contact
+-- MAGIC from customers
+-- MAGIC where cust_id in (select cust_id
+-- MAGIC                  form orders
+-- MAGIC                  where order_num in (select order_num
+-- MAGIC                                      from orderitems
+-- MAGIC                                      where prod_id = 'RGAN01';
+-- MAGIC                  					)                 
+-- MAGIC                  );
+-- MAGIC 优化后↓
+-- MAGIC select cust_name,cust_contact
+-- MAGIC from customers,orders,orderitems
+-- MAGIC where customers.cust_id = orders.cust_id
+-- MAGIC 	and orderitems.order_num = orders.order_num
+-- MAGIC 	and prod_id = 'RGAN01';
+-- MAGIC ```
+-- MAGIC 	
+-- MAGIC 	
+-- MAGIC <高级联结 - 表别名(优势:缩短语句，多次引用)>,示例：
+-- MAGIC ```
+-- MAGIC select cust_name, cust_contact
+-- MAGIC from customers as c,orders as o,orderitems as oi
+-- MAGIC where c.cust_id = o.cust_id
+-- MAGIC 	and oi.order_num = o.order_num
+-- MAGIC 	and prod_id = 'RGAN01';
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 
+-- MAGIC <高级联结 - 自联结self-join>:
+-- MAGIC ```
+-- MAGIC select cust_id,cust_name,cust_contact
+-- MAGIC from customers
+-- MAGIC where cust_name = (select cust_name
+-- MAGIC                   from customers
+-- MAGIC                   where cust_contact = 'Jim Jones;
+-- MAGIC ```
+-- MAGIC 优化后↓(性能更佳，自联结通常作为外部语句，用来替代从相同表中检索数据而使用的子查询语句)
+-- MAGIC ```
+-- MAGIC select c1.cust_id,c1.cust_name,c1.cust_contact
+-- MAGIC from customers as c1,customers as c2
+-- MAGIC where c1.cust_name = c2.cust_name
+-- MAGIC 	and c2.cust_contact = 'Jim Jones';
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 
+-- MAGIC <高级联结 - 自然联结natural-join>:</br>(通配符对第一张表使用，所有其他列明确列出，所有没有重复的列被检索出来)
+-- MAGIC ```
+-- MAGIC select c.*, o.order_num, o.order_date, oi.prod_id, oi.quantity, oi.item_price
+-- MAGIC from customers as c, orders as o, orderitems as oi
+-- MAGIC where c.cust_id = o.cust_id
+-- MAGIC 	and oi.order_num = o.order_num
+-- MAGIC 	and prod_id = 'RGAN01';
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 
+-- MAGIC <高级联结 - 外联结outer-join>: #(统计“被关联+目标表没被关联到”的数据信息.使用外联结时，必须指定包括其所有行的表(排除联结上的行之外的所有行)，right-指outer join右边的表，left-指outer join左边的表. sqlite中不支持right outer，可以通过调整from-where表的先后顺序来实现。)</br>
+-- MAGIC (内联结)
+-- MAGIC ```
+-- MAGIC select customers.cust_id,orders.order_num
+-- MAGIC from customers
+-- MAGIC inner join orders on customers.cust_id = orders.cust_id;
+-- MAGIC ```
+-- MAGIC (外联结)
+-- MAGIC ```
+-- MAGIC select customers.cust_id, orders.order_num
+-- MAGIC from customers
+-- MAGIC left outer join orders on customers.cust_id = orders.cust_id;
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <高级联结 - 带聚集函数的联结>,示例-检索所有顾客及每个顾客所下的订单数</br>
+-- MAGIC (方法1)
+-- MAGIC ```
+-- MAGIC select customers.cust_id,count(orders.order_num) as num_ord
+-- MAGIC from customers
+-- MAGIC inner join orders on customers.cust_id = orders.cust_id
+-- MAGIC group by customers.cust_id
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC (方法2)
+-- MAGIC ```
+-- MAGIC select customers.cust id,count(orders.order_num) as num_ord
+-- MAGIC from customers
+-- MAGIC left outer join orders on customers.cust_id = orders.cust_id
+-- MAGIC group by customers.cust_id;
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 
+-- MAGIC <组合查询 - union> - 多条select语句合并查询/union中各条select每列都为相同字段
+-- MAGIC ```
+-- MAGIC select cust_name, cust_contact, cust_email
+-- MAGIC from customers
+-- MAGIC where cust_state in ('IL','IN','MI
+-- MAGIC union
+-- MAGIC where cust_name, cust_contact, cust_email
+-- MAGIC from customers
+-- MAGIC where cust_name = 'Fun4All'
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 
+-- MAGIC <union默认将重复的行会被自动取消，如果不需要取消，用union all>
+-- MAGIC ```
+-- MAGIC select cust_name, cust_contact, cust_email
+-- MAGIC from customers
+-- MAGIC where cust_state in ('IL','IN','MI
+-- MAGIC union all
+-- MAGIC where cust_name, cust_contact, cust_email
+-- MAGIC from customers
+-- MAGIC where cust_name = 'Fun4All'
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <union中的order by只能作用于最后一条select语句之后>
+-- MAGIC ```
+-- MAGIC select cust_name, cust_contact, cust_email
+-- MAGIC from customers
+-- MAGIC where cust_state in ('IL','IN','MI
+-- MAGIC union
+-- MAGIC where cust_name, cust_contact, cust_email
+-- MAGIC from customers
+-- MAGIC where cust_name = 'Fun4All'
+-- MAGIC order by cust_name, cust_contact
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <插入数据 - insert> - 插入完整的行,每个值将按默认顺序插入
+-- MAGIC ```
+-- MAGIC insert into customers
+-- MAGIC value('123','abc','thooo;
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <insert - 更保险的方式,分别给定列名和值，一一对应>
+-- MAGIC ```
+-- MAGIC insert into customers(cust_id,cust_contact,cust_name)
+-- MAGIC value('123','abc','thooo
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <insert 检索后的结果数据 - customers.new与customer表结构相同，但主键cust_id不能相同>
+-- MAGIC ```
+-- MAGIC insert into customers(cust_id,cust_contact,cust_name)
+-- MAGIC select cust_id,cust_contact,cust_name
+-- MAGIC from customers.new
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <从一个表复制到另一个表>
+-- MAGIC ```
+-- MAGIC create table table.new as select * from old.table;
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <更新和删除数据 - insert/delete> - 注意跟where条件，否则更新全表
+-- MAGIC ```
+-- MAGIC update customers
+-- MAGIC set cust_email = 'newemail@xxx.com'
+-- MAGIC where cust_id = '1000000';
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <更新多列>
+-- MAGIC ```
+-- MAGIC update customers
+-- MAGIC set cust_email = 'newemail@xxx.com',cust_contact='bob'
+-- MAGIC where cust_id = '1000000';
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <删除某列的值> - 删除cust_email列
+-- MAGIC ```
+-- MAGIC update customers
+-- MAGIC set cust_email=null
+-- MAGIC where cust_id='1000000';
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <删除行>
+-- MAGIC ```
+-- MAGIC delect customers
+-- MAGIC where cust_id='100000';
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC 
+-- MAGIC <创建表> - 表名，表定义
+-- MAGIC ```
+-- MAGIC create table product
+-- MAGIC (
+-- MAGIC 	prod_id	char(10) not null,
+-- MAGIC     vend_id char(10) not null,
+-- MAGIC     prod_name decimal(8,2) not null,
+-- MAGIC )
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <更新表 - alert> - 增加一列
+-- MAGIC ```
+-- MAGIC alter table vendors
+-- MAGIC add vend_phone char(20);
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <alert - 删除一列>
+-- MAGIC ```
+-- MAGIC alter table vendors
+-- MAGIC drop column vend_phone;
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <删除表>
+-- MAGIC ```
+-- MAGIC drop table custcopy;
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <视图-view|虚拟表> 作用：重用sql语句，简化复杂sql操作，使用表的一部分而不是整体，权限控制和分享等
+-- MAGIC 利用视图简化复杂的联结
+-- MAGIC ```
+-- MAGIC create view productcustomers as 
+-- MAGIC select cust_name,cust_contact,prod_id
+-- MAGIC from customers,orders,orderitems
+-- MAGIC where customers.cust_id=orders.cust_id
+-- MAGIC 	and orderitems.order_num=orders.order_num;
+-- MAGIC 	
+-- MAGIC select cust_name,cust_contact
+-- MAGIC from productcustomers
+-- MAGIC where prod_id ='RGAN01';
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <使用视图创建常用的数据格式>
+-- MAGIC ```
+-- MAGIC create view vendorlocation as
+-- MAGIC select rtrim(vend_name) + '(' + RTRIM(vend_country)+'
+-- MAGIC 	as vend_title
+-- MAGIC from vendors;
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <使用视图过滤不想要的数据>
+-- MAGIC ```
+-- MAGIC create view customeremailist as
+-- MAGIC select cust_id, cust_name, cust_email
+-- MAGIC from customers
+-- MAGIC where cust_email is not null;
+-- MAGIC ```
+-- MAGIC 
+-- MAGIC <使用视图检索计算结果>
+-- MAGIC ```
+-- MAGIC create view orderitemexpanded as
+-- MAGIC select order_num, prod_id, quantity, item_price, quantity*item_price as expanded_price
+-- MAGIC from orderitems
+-- MAGIC 
+-- MAGIC select * 
+-- MAGIC from orderitemexpanded
+-- MAGIC where order_num=20008;
+-- MAGIC ```

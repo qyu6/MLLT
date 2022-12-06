@@ -1,0 +1,22 @@
+任务栏右下角，调整为“时间+年月日”的组合形式
+
+脚本文件后缀改为.bat形式，双击自动运行
+
+在脚本中更改要求改日期时间戳的文件夹路径
+
+修改更改日期时间范围 - xx年，一般写当前年份即可
+
+启动windonws命令行运行:
+-如遇到“'touch'is not recognized as an internal or external command”的情况:
+>>npm install -g touch-cli
+
+-如遇到“'npm’is not recognized as an internal or external command”的情况:
+通过安装nodejs来解决:https://nodejs.org/en/ (nodejs自带npm).安装完成后
+查看npm版本:
+>>npm --version
+
+查看npm安装路径:
+>>where npm
+
+如果npm不在系统path，需要添加npm到系统路径中
+environmentvariable settings-environment variables - system variables-path添加到路径后，可通过npm来安装touch

@@ -22,3 +22,6 @@
 # MAGIC   - https://github.com/qyu6/Python-Machine-Learning-Cookbook
 # MAGIC - 作者其他项目github地址：
 # MAGIC   - https://github.com/PacktPublishing
+# MAGIC   - https://amaozhao.gitbooks.io/python-real-world-machine-learning/content/Module-1/analyzing-text-data/building-a-bag-of-words-model.html
+
+

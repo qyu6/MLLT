@@ -1,0 +1,10 @@
+# solve some network connection unstable  issue, like git clone/git push
+# in powershell cmd
+
+>>$index=0
+>>do {
+"try: $index"
+git clone https://path...
+$index++
+" ************************ "
+} until ($index -eq 100)

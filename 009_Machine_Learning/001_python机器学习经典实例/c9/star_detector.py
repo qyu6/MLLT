@@ -6,7 +6,7 @@ class StarFeatureDetector(object):
     def __init__(self):
         # self.detector = cv2.xfeatures2d.StarDetector_create()
         self.detector = cv2.StarDetector_create()
-
+ 
     def detect(self, img):
         return self.detector.detect(img)
 

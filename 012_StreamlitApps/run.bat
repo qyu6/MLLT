@@ -1,0 +1,1 @@
+streamlit run C:\Users\Tony\Downloads\Github-MLLT\MLLT\012_StreamlitApps\IndexPortal.py

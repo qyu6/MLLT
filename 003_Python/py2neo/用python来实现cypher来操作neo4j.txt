@@ -1,0 +1,8 @@
+1. (neo4j模块) - neo4j执行CQL(Cypher)语句
+2. (py2neo模块) - 通过操作python变量，达到操作neo4j的目的
+3. (py2neo模块) - 执行CQL(Cypher)语句
+
+https://zhuanlan.zhihu.com/p/82958776
+
+from neo4j import GraphDatabase
+driver = GraphDatabase.driver("xx://localhost:xxx", auto("username","passsword"))
